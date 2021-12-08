@@ -11,17 +11,20 @@ BLUE = 70, 130, 180
 WHITE = 255, 255, 255
 
 len = 40
-P_obs = 0.04
-delay = 100
+P_obs = 0.12
+num_prize = 10
+delay = 300
 
 pygame.init()  # 初始化py_game模块
-screen = pygame.display.set_mode((1000, 800), 0, 32)   # 界面大小
-pygame.display.set_caption("熊蜂模拟环境")   # 修改名称
+screen = pygame.display.set_mode((1000, 800), 0, 32)  # 界面大小
+pygame.display.set_caption("熊蜂模拟环境")  # 修改名称
 
-obstacle = pygame.image.load('obstacle.png').convert()
+obstacle = pygame.image.load('Pic/obstacle.png').convert()
 obstacle = pygame.transform.scale(obstacle, (15, 15))
-bombus = pygame.image.load('bombus.png').convert()
+bombus = pygame.image.load('Pic/bombus.png').convert()
 bombus = pygame.transform.scale(bombus, (30, 35))
+prize = pygame.image.load('Pic/prize.png').convert()
+prize = pygame.transform.scale(prize, (40, 40))
 
 map = [(5 * len, 0), (15 * len, 0), (20 * len, 5 * len * math.sqrt(3)),
        (15 * len, 10 * len * math.sqrt(3)), (5 * len, 10 * len * math.sqrt(3)), (0, 5 * len * math.sqrt(3))]
@@ -45,6 +48,7 @@ for row in range(rows):
         y = row * 0.5 * len * math.sqrt(3)
         points.append((x, y))
 
+
 def inside_map(x, y):
     flag = True
     if (x / (5 * len) + y / (5 * len * math.sqrt(3)) < 1):
@@ -59,6 +63,7 @@ def inside_map(x, y):
         flag = False
 
     return flag
+
 
 # set obstacle
 obs_pos = []
@@ -80,9 +85,12 @@ for row in range(rows):
                 e_pos = points[index[1]]
                 midpoint_x = (s_pos[0] + e_pos[0]) / 2
                 midpoint_y = (s_pos[1] + e_pos[1]) / 2
+                midpoint_x_str = '%.3f' % ((s_pos[0] + e_pos[0]) / 2)
+                midpoint_y_str = '%.3f' % ((s_pos[1] + e_pos[1]) / 2)
                 if (inside_map(midpoint_x, midpoint_y) == False):
-                    break
-                obs_cache.append([s_pos, e_pos])
+                    continue
+                midpoint = (midpoint_x_str, midpoint_y_str)
+                obs_cache.append(midpoint)
                 bias = 6
                 pos = [midpoint_x - bias, midpoint_y - bias]
                 obs_pos.append(pos)
@@ -100,13 +108,14 @@ while True:
     if (inside_map(x, y) == True):
         break
 
+
 # bombus move
 def bom_mov(pos, b_dir):
-    success_flag = True
-    bias = 18
-    x = pos[0] + bias
-    y = pos[1] + bias
-    pos_orig = (x, y)
+    b = 18
+    x = pos[0] + b
+    y = pos[1] + b
+    x_orig = x
+    y_orig = y
     dir = np.nonzero(b_dir)[0][0]
 
     # choose the heading direction
@@ -119,7 +128,7 @@ def bom_mov(pos, b_dir):
             b_dir = [1, 0, 0, 0, 0, 0]
         else:
             dir = dir + 1
-            b_dir = b_dir[0 : -1]
+            b_dir = b_dir[0: -1]
             b_dir.insert(0, 0)
     elif (rand == 2):
         if (dir == 0):
@@ -149,25 +158,51 @@ def bom_mov(pos, b_dir):
         y = y - 0.5 * len * math.sqrt(3)
 
     # obstacle
-    next_pos = (x, y)
-    step = [pos_orig, next_pos]
-    next_pos = (x - bias, y- bias)
-    if (step in obs_cache):
-        success_flag = False
-        print(step, '\n')
-        print(obs_cache, '\n')
+    mid_x = '%.3f' % ((x_orig + x) / 2)
+    mid_y = '%.3f' % ((y_orig + y) / 2)
+    mid = (mid_x, mid_y)
+    next_pos = (x - b, y - b)
+    if (mid in obs_cache):
+        return False
+
     # inside map
-    if (inside_map(x + bias, y + bias) == False):
-        success_flag = False
+    if (inside_map(x, y) == False):
+        return False
 
-    if (success_flag == False):
-        return success_flag
-    else:
-        return next_pos, b_dir
+    return next_pos, b_dir
 
 
-# run the pygame
+# set random prize
+def set_prize(cur_ind):
+    global num_prize
+    count = 0
+    index = []
+    while True:
+        num_points = columns * rows
+        ind = random.randint(0, num_points - 1)
+        prize_pos = points[ind]
+        prize_x = prize_pos[0]
+        prize_y = prize_pos[1]
+        if (inside_map(prize_x, prize_y) == True):
+            if (ind not in cur_ind):
+                index.append(ind)
+                count = count + 1
+        if (count == num_prize):
+            return index
+
+
+# main function
 if __name__ == '__main__':
+    # set initial prize
+    prize_ind = set_prize([-1])
+    bias = 20
+    prize_pos = []
+    p_pos = []
+    for ind in prize_ind:
+        p_pos.append(points[ind])
+        prize_pos.append(np.array(points[ind]) - np.ones(np.array(points[0]).shape) * bias)
+
+    # run the pygame
     while True:
         # refresh the screen
         screen.fill(WHITE)
@@ -203,15 +238,24 @@ if __name__ == '__main__':
         # draw the bombus
         screen.blit(bombus, bom_pos)
         times = 0
+        # bombus move
         while True:
             times = times + 1
-            if (times > 100):
+            if (times > 1000):
                 exit()
             results = bom_mov(bom_pos, bom_dir)
             if (results != False):
                 times = 0
                 bom_pos, bom_dir = results
                 break
+
+        # update the prize
+        b_bos = np.array(bom_pos) + np.ones(np.array(bom_pos).shape) * 18
+        for p, p_orig in prize_pos, p_pos:
+            if (b_bos != p_orig):
+                screen.blit(prize, p)
+            else:
+
 
         # display on screen
         pygame.display.update()
