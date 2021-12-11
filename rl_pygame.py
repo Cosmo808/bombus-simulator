@@ -13,7 +13,7 @@ WHITE = 255, 255, 255
 len = 40
 P_obs = 0.12
 num_prize = 10
-delay = 300
+delay = 150
 
 pygame.init()  # 初始化py_game模块
 screen = pygame.display.set_mode((1000, 800), 0, 32)  # 界面大小
@@ -91,8 +91,7 @@ for row in range(rows):
                     continue
                 midpoint = (midpoint_x_str, midpoint_y_str)
                 obs_cache.append(midpoint)
-                bias = 6
-                pos = [midpoint_x - bias, midpoint_y - bias]
+                pos = [midpoint_x - 6, midpoint_y - 6]
                 obs_pos.append(pos)
             except IndexError:
                 pass
@@ -103,17 +102,15 @@ while True:
     bom_pos = points[rand]
     x = bom_pos[0]
     y = bom_pos[1]
-    bias = 18
-    bom_pos = [x - bias, y - bias]
+    bom_pos = [x - 18, y - 18]
     if (inside_map(x, y) == True):
         break
 
 
 # bombus move
 def bom_mov(pos, b_dir):
-    b = 18
-    x = pos[0] + b
-    y = pos[1] + b
+    x = pos[0] + 18
+    y = pos[1] + 18
     x_orig = x
     y_orig = y
     dir = np.nonzero(b_dir)[0][0]
@@ -161,7 +158,7 @@ def bom_mov(pos, b_dir):
     mid_x = '%.3f' % ((x_orig + x) / 2)
     mid_y = '%.3f' % ((y_orig + y) / 2)
     mid = (mid_x, mid_y)
-    next_pos = (x - b, y - b)
+    next_pos = (x - 18, y - 18)
     if (mid in obs_cache):
         return False
 
@@ -173,34 +170,57 @@ def bom_mov(pos, b_dir):
 
 
 # set random prize
-def set_prize(cur_ind):
+def set_prize(p_pos = None, p_ind = None, b_pos = None):
     global num_prize
-    count = 0
-    index = []
-    while True:
-        num_points = columns * rows
-        ind = random.randint(0, num_points - 1)
-        prize_pos = points[ind]
-        prize_x = prize_pos[0]
-        prize_y = prize_pos[1]
-        if (inside_map(prize_x, prize_y) == True):
-            if (ind not in cur_ind):
-                index.append(ind)
-                count = count + 1
-        if (count == num_prize):
-            return index
 
+    # initialize the position
+    if (p_pos is None):
+        counts = 0
+        prize_pos = []
+        index = []
+        num_points = columns * rows
+        while True:
+            ind = random.randint(0, num_points - 1)
+            p = points[ind]
+            prize_x = p[0] - 20
+            prize_y = p[1] - 20
+            if (inside_map(p[0], p[1]) == True):
+                if (ind not in index):
+                    index.append(ind)
+                    prize_pos.append((prize_x, prize_y))
+                    counts = counts + 1
+            if (counts == num_prize):
+                return prize_pos, index
+
+    # update prize
+    flag = 0
+    for i, p in enumerate(p_pos):
+        p_x = '%.3f' % (p[0] + 20)
+        p_y = '%.3f' % (p[1] + 20)
+        p_orig = (p_x, p_y)
+        if (b_pos == p_orig):
+            flag = -1
+            break
+    if (flag != -1):
+        return p_pos, p_ind
+    num_points = columns * rows
+    while True:
+        ind = random.randint(0, num_points - 1)
+        p = points[ind]
+        prize_x = p[0] - 20
+        prize_y = p[1] - 20
+        if (inside_map(p[0], p[1]) == True):
+            if (ind not in p_ind):
+                break
+
+    p_ind[i] = ind
+    p_pos[i] = (prize_x, prize_y)
+    return p_pos, p_ind
 
 # main function
 if __name__ == '__main__':
     # set initial prize
-    prize_ind = set_prize([-1])
-    bias = 20
-    prize_pos = []
-    p_pos = []
-    for ind in prize_ind:
-        p_pos.append(points[ind])
-        prize_pos.append(np.array(points[ind]) - np.ones(np.array(points[0]).shape) * bias)
+    prize_pos, prize_ind = set_prize()
 
     # run the pygame
     while True:
@@ -250,12 +270,12 @@ if __name__ == '__main__':
                 break
 
         # update the prize
-        b_bos = np.array(bom_pos) + np.ones(np.array(bom_pos).shape) * 18
-        for p, p_orig in prize_pos, p_pos:
-            if (b_bos != p_orig):
-                screen.blit(prize, p)
-            else:
-
+        for p in prize_pos:
+            screen.blit(prize, p)
+        b_x = '%.3f' % (bom_pos[0] + 18)
+        b_y = '%.3f' % (bom_pos[1] + 18)
+        b_pos = (b_x, b_y)
+        prize_pos, prize_ind = set_prize(prize_pos, prize_ind, b_pos)
 
         # display on screen
         pygame.display.update()
