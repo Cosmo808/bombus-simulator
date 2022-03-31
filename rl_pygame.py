@@ -17,7 +17,7 @@ delay = 150
 
 pygame.init()  # 初始化py_game模块
 screen = pygame.display.set_mode((1000, 800), 0, 32)  # 界面大小
-pygame.display.set_caption("熊蜂模拟环境")  # 修改名称
+pygame.display.set_caption("Bombus Simulator")  # 修改名称
 
 obstacle = pygame.image.load('Pic/obstacle.png').convert()
 obstacle = pygame.transform.scale(obstacle, (15, 15))
@@ -113,7 +113,7 @@ def bom_mov(pos, b_dir):
     y = pos[1] + 18
     x_orig = x
     y_orig = y
-    dir = np.nonzero(b_dir)[0][0]
+    dir = np.nonzero(b_dir)[0][0] # first not zero
 
     # choose the heading direction
     rand = random.randint(0, 2)
