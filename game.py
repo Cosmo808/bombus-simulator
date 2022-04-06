@@ -23,12 +23,14 @@ WHITE = 255, 255, 255
 rows = 21
 columns = 21
 length = 40
-delay = 300
+delay = 20
+P_obs = 0.1
+num_prize = 15
 
 
 class BombusGame:
     
-    def __init__(self, P_obs=0.12, num_prize=4):
+    def __init__(self, P_obs=P_obs, num_prize=num_prize):
         self.P_obs = P_obs  # distribution probability of obstacles
         self.num_prize = num_prize  # prize number
         self.bom_present_dir = None  # bombus present direction

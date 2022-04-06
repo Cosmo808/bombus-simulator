@@ -1,6 +1,7 @@
 import pygame
 import math
 import random
+from utils import inside_map
 
 
 def screen_map_set(length=40):
@@ -23,21 +24,6 @@ def points_set(rows=21, columns=21, length=40):
             y = row * 0.5 * length * math.sqrt(3)
             points.append((x, y))
     return points
-
-
-def inside_map(x, y, length=40):
-    flag = True
-    if x / (5 * length) + y / (5 * length * math.sqrt(3)) <= 1:
-        flag = False
-    elif x / (25 * length) + y / (25 * length * math.sqrt(3)) >= 1:
-        flag = False
-    elif x / (-5 * length) + y / (5 * length * math.sqrt(3)) >= 1:
-        flag = False
-    elif x / (15 * length) + y / (-15 * length * math.sqrt(3)) >= 1:
-        flag = False
-    elif y > 10 * length * math.sqrt(3) or y < 0:
-        flag = False
-    return flag
 
 
 def obstacles_set(points, rows=21, columns=21, P_obs=0.12):
@@ -106,13 +92,13 @@ def prizes_set(points, prize_pos=None, prize_ind=None, bombus_pos=None,
     if not flag:
         # bombus do not reach prize
         return prize_pos, prize_ind, flag
-    # bombus reach the prize-i
+    # bombus reach the prize i
     while True:
         ind = random.randint(0, num_points - 1)
+        p = points[ind]
         if inside_map(p[0], p[1]):
             if ind not in prize_ind:
                 break
-    p = points[ind]
     prize_x = p[0] - 20
     prize_y = p[1] - 20
     prize_ind[i] = ind

@@ -2,6 +2,7 @@ from Model import DNN
 import numpy as np
 import random
 from utils import game2state
+import tensorflow as tf
 
 max_memory = 1000
 batch_size = 64
@@ -11,7 +12,7 @@ class Agent:
 
     def __init__(self, state_size):
         self.epochs = 0
-        self.epsilon = 0.9
+        self.epsilon = 0
         self.gamma = 0.9  # discount rate
         self.state_size = state_size
         self.memory = np.zeros((max_memory, self.state_size * 2 + 3))
@@ -47,7 +48,7 @@ class Agent:
         q_targ = q_eval.copy()
 
         batch_index = np.arange(batch_size, dtype=np.int32)
-        eval_action_index = batch_memory[:, self.state_size]
+        eval_action_index = batch_memory[:, self.state_size].astype(int)
         reward = batch_memory[:, self.state_size+1]
         q_targ[batch_index, eval_action_index] = reward + self.gamma * np.max(q_next, axis=1)
 
@@ -57,10 +58,12 @@ class Agent:
         self.learn_step_counter += 1
 
     def train_short_memory(self, state, action, reward, next_state, done):
+        state = tf.expand_dims(state, axis=0)
+        next_state = tf.expand_dims(next_state, axis=0)
         q_next = self.dnn.model_targ.predict(next_state)
         q_eval = self.dnn.model_targ.predict(state)
         q_targ = q_eval.copy()
-        q_targ[action] = reward + self.gamma * np.max(q_next, axis=1)
+        q_targ[0, action] = reward + self.gamma * np.max(q_next, axis=1)
 
         self.dnn.model_eval.fit(
             x=state, y=q_targ, epochs=10
@@ -68,7 +71,9 @@ class Agent:
 
     def get_action(self, state):
         state = np.array(state)
-        if random.random() < self.epsilon:
+        state = tf.expand_dims(state, axis=0)
+        self.epsilon = (80 - self.epochs) / 200
+        if random.random() > self.epsilon:
             action_value = self.dnn.model_targ.predict(state)
             action = np.argmax(action_value)  # [0, 2]
         else:

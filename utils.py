@@ -88,7 +88,7 @@ def plot_epochs(plot_scores, plot_mean_scores):
     plt.pause(0.1)
 
 
-def game2state(game, length=40.0):
+def game2state(game):
     present_dir = game.bom_present_dir
     bom_pos = game.bom_pos
     obs_cache = game.obs_cache
@@ -100,7 +100,7 @@ def game2state(game, length=40.0):
     present_x = bom_pos[0] + 18
     present_y = bom_pos[1] + 18
 
-    # if obs in 3 directions
+    # if obs or border in 3 directions
     for action in range(0, 3):
         next_dir = present_dir + (action - 1)
         if next_dir == -1:
@@ -112,7 +112,7 @@ def game2state(game, length=40.0):
         midpoint_x = '%.3f' % ((present_x + next_x) / 2)
         midpoint_y = '%.3f' % ((present_y + next_y) / 2)
         midpoint = [midpoint_x, midpoint_y]
-        if midpoint in obs_cache:
+        if midpoint in obs_cache or not inside_map(next_x, next_y):
             if_obs[action] = 1
 
     # if prize in 4 sectors
@@ -122,6 +122,8 @@ def game2state(game, length=40.0):
         relative_x = p_x - present_x
         relative_y = p_y - present_y
         distance = math.sqrt(relative_x * relative_x + relative_y * relative_y)
+        if distance == 0:
+            continue
         cos = relative_x / distance
         degree = math.acos(cos) / math.pi * 180
         if relative_y < 0:
