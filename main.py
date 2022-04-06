@@ -37,7 +37,7 @@ while True:
 
         if scores > record:
             record = scores
-            agent.dnn.model_targ.save(filepath='./Model/')
+            agent.dnn.model_targ.save(filepath='./Model/bombus.h5')
 
         # print result every epoch
         print('Epoch #{}  Score {}  Record {}'.format(agent.epochs, scores, record))
