@@ -58,7 +58,7 @@ def move(bom_pos, bom_present_dir, bom_next_dir, obs_cache, length=40.0):
 
     # if not inside map
     if not inside_map(next_x, next_y):
-        punish = -10
+        punish = -20
         flag = False
 
     # if hit obstacle

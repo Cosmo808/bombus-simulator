@@ -72,7 +72,9 @@ class Agent:
     def get_action(self, state):
         state = np.array(state)
         state = tf.expand_dims(state, axis=0)
-        self.epsilon = (80 - self.epochs) / 200
+        self.epsilon = (200 - self.epochs) / 300
+        if self.epochs > 170:
+            self.epsilon = 0.1
         if random.random() > self.epsilon:
             action_value = self.dnn.model_targ.predict(state)
             action = np.argmax(action_value)  # [0, 2]

@@ -1,5 +1,5 @@
 from tensorflow.keras.models import Model
-from tensorflow.keras.layers import Dense, Input
+from tensorflow.keras.layers import Dense, Input, Dropout
 from tensorflow.keras import optimizers, losses
 
 
@@ -21,15 +21,17 @@ class DNN:
         # evaluation net
         eval_inputs = Input(shape=(self.state_size, ))
         x = Dense(64, activation='relu')(eval_inputs)
-        x = Dense(64, activation='relu')(x)
-        self.q_eval = Dense(self.action_size)(x)
+        x = Dropout(rate=0.5)(x)
+        x = Dense(32, activation='relu')(x)
+        self.q_eval = Dense(self.action_size, activation='sigmoid')(x)
         self.model_eval = Model(eval_inputs, self.q_eval)
 
         # target net
         target_inputs = Input(shape=(self.state_size, ))
         x = Dense(64, activation='relu')(target_inputs)
-        x = Dense(64, activation='relu')(x)
-        self.q_next = Dense(self.action_size)(x)
+        x = Dropout(rate=0.5)(x)
+        x = Dense(32, activation='relu')(x)
+        self.q_next = Dense(self.action_size, activation='sigmoid')(x)
         self.model_targ = Model(target_inputs, self.q_next)
 
         # compile

@@ -23,9 +23,9 @@ WHITE = 255, 255, 255
 rows = 21
 columns = 21
 length = 40
-delay = 20
-P_obs = 0.1
-num_prize = 15
+delay = 5
+P_obs = 0.08
+num_prize = 2
 
 
 class BombusGame:
@@ -48,10 +48,16 @@ class BombusGame:
         
     def reset(self):
         self.bom_present_dir = 0
-        self.points = Map_generator.points_set()
-        self.prize_pos, self.prize_ind = Map_generator.prizes_set(self.points, num_prize=self.num_prize)  # set init prize position
-        self.obs_pos, self.obs_cache = Map_generator.obstacles_set(self.points, P_obs=self.P_obs)  # set obstacles
-        self.bom_pos = Map_generator.bombus_init_pos(self.points)  # set init bombus position
+        self.points = Map_generator.points_set(rows=rows, columns=columns)
+        self.prize_pos, self.prize_ind = Map_generator.prizes_set(
+            self.points, rows=rows, columns=columns, num_prize=self.num_prize
+        )  # set init prize position
+        self.obs_pos, self.obs_cache = Map_generator.obstacles_set(
+            self.points, rows=rows, columns=columns, P_obs=self.P_obs
+        )  # set obstacles
+        self.bom_pos = Map_generator.bombus_init_pos(
+            self.points, rows=rows, columns=columns
+        )  # set init bombus position
         self.scores = 0  # reset score
         self.iteration = 0  # reset iteration
         # self.bom_pos_cache = []  # reset bombus position
@@ -73,8 +79,8 @@ class BombusGame:
             for col in range(columns):
                 if col == columns - 1:
                     break
-                index_0 = row * 21 + col
-                index_1 = (row + 1) * 21 + col + (row % 2)
+                index_0 = row * rows + col
+                index_1 = (row + 1) * rows + col + (row % 2)
                 start_pos = self.points[index_0]
                 end_pos_0 = self.points[index_0 + 1]
                 pygame.draw.line(screen, WHITE, start_pos, end_pos_0, 1)
@@ -114,7 +120,7 @@ class BombusGame:
 
         # 3. check if game over
         if flag:  # successfully move
-            reward = 0
+            reward = -1
             done = False
         else:  # game over
             reward = punish
@@ -129,7 +135,7 @@ class BombusGame:
         self.prize_pos, self.prize_ind, flag = Map_generator.prizes_set(self.points, self.prize_pos, self.prize_ind, b_pos)
         if flag:  # successfully reach the prize
             self.scores += 1
-            reward = 10
+            reward = 30
 
         # 5. display on screen
         pygame.display.update()
