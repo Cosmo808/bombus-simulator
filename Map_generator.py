@@ -1,32 +1,48 @@
 import pygame
-import math
+import sys
+from math import sqrt
 import random
 from utils import inside_map
 
 
-def screen_map_set(length=40):
-    screen = pygame.display.set_mode((1000, 800), 0, 32)  # 界面大小
+def screen_map_set(rows=21, columns=21, length=40):
+    rows -= 1
+    columns -= 1
+    screen = pygame.display.set_mode(((rows + 1) * length, (columns + 1) * length), 0, 32)  # 界面大小
     pygame.display.set_caption("Bombus Simulator")  # 修改名称
-    map = [(5 * length, 0), (15 * length, 0), (20 * length, 5 * length * math.sqrt(3)),
-           (15 * length, 10 * length * math.sqrt(3)), (5 * length, 10 * length * math.sqrt(3)), (0, 5 * length * math.sqrt(3))]
+    map = [(rows / 4 * length, 0), (rows / 4 * 3 * length, 0), (rows * length, columns / 4 * length * sqrt(3)),
+           (rows / 4 * 3 * length, columns / 2 * length * sqrt(3)),
+           (rows / 4 * length, columns / 2 * length * sqrt(3)), (0, columns / 4 * length * sqrt(3))]
     return screen, map
 
 
 def points_set(rows=21, columns=21, length=40):
     points = []
-    for row in range(rows):
-        if row % 2 == 0:
-            bias = 0
-        else:
-            bias = 0.5 * length
-        for col in range(columns):
-            x = col * length + bias
-            y = row * 0.5 * length * math.sqrt(3)
-            points.append((x, y))
-    return points
+    bias = [
+        [0, 0.5 * length], [-0.5 * length, 0]
+    ]
+    if rows % 4 == 1:
+        bias = bias[0]
+    elif rows % 4 == 3:
+        bias = bias[1]
+
+    try:
+        for row in range(rows):
+            if row % 2 == 0:
+                b = bias[0]
+            else:
+                b = bias[1]
+            for col in range(columns):
+                x = col * length + b
+                y = row * 0.5 * length * sqrt(3)
+                points.append((x, y))
+        return points
+    except TypeError:
+        print("\n", "Wrong Input...")
+        sys.exit(0)
 
 
-def obstacles_set(points, rows=21, columns=21, P_obs=0.12):
+def obstacles_set(points, rows=21, columns=21, length=40, P_obs=0.12):
     obs_pos = []
     obs_cache = []
     for row in range(rows):
@@ -48,7 +64,7 @@ def obstacles_set(points, rows=21, columns=21, P_obs=0.12):
                     midpoint_y = (s_pos[1] + e_pos[1]) / 2
                     midpoint_x_str = '%.3f' % ((s_pos[0] + e_pos[0]) / 2)
                     midpoint_y_str = '%.3f' % ((s_pos[1] + e_pos[1]) / 2)
-                    if not inside_map(midpoint_x, midpoint_y):
+                    if not inside_map(midpoint_x, midpoint_y, rows, columns, length):
                         continue
                     midpoint = [midpoint_x_str, midpoint_y_str]
                     obs_cache.append(midpoint)
@@ -60,7 +76,7 @@ def obstacles_set(points, rows=21, columns=21, P_obs=0.12):
 
 
 def prizes_set(points, prize_pos=None, prize_ind=None, bombus_pos=None,
-               rows=21, columns=21, num_prize=10,):
+               rows=21, columns=21, length=40, num_prize=10):
     # initialize the position
     num_points = columns * rows
     if prize_pos is None:
@@ -70,7 +86,7 @@ def prizes_set(points, prize_pos=None, prize_ind=None, bombus_pos=None,
         while True:
             ind = random.randint(0, num_points - 1)  # [0, num_points-1]
             p = points[ind]
-            if inside_map(p[0], p[1]):
+            if inside_map(p[0], p[1], rows, columns, length):
                 if ind not in index:
                     index.append(ind)
                     prize_x = p[0] - 20
@@ -96,7 +112,7 @@ def prizes_set(points, prize_pos=None, prize_ind=None, bombus_pos=None,
     while True:
         ind = random.randint(0, num_points - 1)
         p = points[ind]
-        if inside_map(p[0], p[1]):
+        if inside_map(p[0], p[1], rows, columns, length):
             if ind not in prize_ind:
                 break
     prize_x = p[0] - 20
@@ -106,13 +122,13 @@ def prizes_set(points, prize_pos=None, prize_ind=None, bombus_pos=None,
     return prize_pos, prize_ind, flag
 
 
-def bombus_init_pos(points, rows=21, columns=21):
+def bombus_init_pos(points, rows=21, columns=21, length=40):
     while True:
         rand = random.randint(0, rows * columns - 1)
         bom_pos = points[rand]
         x = bom_pos[0]
         y = bom_pos[1]
         bom_pos = [x - 18, y - 18]
-        if inside_map(x, y):
+        if inside_map(x, y, rows, columns, length):
             break
     return bom_pos

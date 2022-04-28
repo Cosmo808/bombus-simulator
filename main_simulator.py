@@ -2,15 +2,19 @@ import matplotlib.pyplot as plt
 from RL import Agent
 from game import BombusGame
 from utils import plot_epochs
+# from ICP import ICPapi
 
 
 plot_scores = []
 plot_mean_scores = []
 total_score = 0
 record = 0
-agent = Agent(state_size=8)
+agent = Agent(state_size=13)
 game = BombusGame()
+# icp = ICPapi()
 plt.ion()
+
+practice_flag = 0
 
 while True:
     # get old state
@@ -18,6 +22,11 @@ while True:
 
     # get action
     action = agent.get_action(state_old)
+    # if practice_flag:
+        # send command to light stream screen
+        # icp.dir2light(action)
+        # get actual action
+        # icp.get_actual_action()
 
     # perform the action and get new state
     scores, done, reward = game.play_step(next_dir=action)
@@ -37,7 +46,7 @@ while True:
 
         if scores > record:
             record = scores
-            agent.dnn.model_targ.save(filepath='./Model/bombus.h5')
+            agent.dnn.save()
 
         # print result every epoch
         print('Epoch #{}  Score {}  Record {}'.format(agent.epochs, scores, record))

@@ -1,16 +1,14 @@
 from tensorflow.keras.models import Model
-from tensorflow.keras.layers import Dense, Input, Dropout
+from tensorflow.keras.layers import Dense, Input
 from tensorflow.keras import optimizers, losses
 
 
 class DNN:
 
-    def __init__(self, state_size, action_size, lr, gamma):
+    def __init__(self, state_size, action_size, lr):
         self.state_size = state_size
         self.action_size = action_size
         self.lr = lr
-        self.epsilon = 0.9
-        self.gamma = gamma
         self.q_eval = None
         self.q_next = None
         self.model_eval = Model()
@@ -20,18 +18,18 @@ class DNN:
     def _dnn_generate(self):
         # evaluation net
         eval_inputs = Input(shape=(self.state_size, ))
-        x = Dense(64, activation='relu')(eval_inputs)
-        x = Dropout(rate=0.5)(x)
-        x = Dense(32, activation='relu')(x)
-        self.q_eval = Dense(self.action_size, activation='sigmoid')(x)
+        x = Dense(192, activation='relu')(eval_inputs)
+        # x = Dropout(rate=0.5)(x)
+        x = Dense(64, activation='relu')(x)
+        self.q_eval = Dense(self.action_size)(x)
         self.model_eval = Model(eval_inputs, self.q_eval)
 
         # target net
         target_inputs = Input(shape=(self.state_size, ))
-        x = Dense(64, activation='relu')(target_inputs)
-        x = Dropout(rate=0.5)(x)
-        x = Dense(32, activation='relu')(x)
-        self.q_next = Dense(self.action_size, activation='sigmoid')(x)
+        x = Dense(192, activation='relu')(target_inputs)
+        # x = Dropout(rate=0.5)(x)
+        x = Dense(64, activation='relu')(x)
+        self.q_next = Dense(self.action_size)(x)
         self.model_targ = Model(target_inputs, self.q_next)
 
         # compile
@@ -49,4 +47,3 @@ class DNN:
     def target_replace_op(self):
         w_e = self.model_eval.get_weights()
         self.model_targ.set_weights(w_e)
-        print("params has changed")
