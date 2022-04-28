@@ -1,6 +1,7 @@
 from math import sqrt, acos, pi
 from IPython import display
 import matplotlib.pyplot as plt
+import numpy as np
 
 
 def inside_map(x, y, rows=21, columns=21, length=40.0):
@@ -60,7 +61,7 @@ def move(bom_pos, bom_present_dir, bom_next_dir, obs_cache, rows=21, columns=21,
 
     # if not inside map
     if not inside_map(next_x, next_y, rows, columns, length):
-        punish = -30
+        punish = -10
         flag = False
 
     # if hit obstacle
@@ -101,7 +102,7 @@ def game2state(game):
 
     direction = [0, 0, 0, 0, 0, 0]
     if_obs = [0, 0, 0]
-    if_prize = [0, 0, 0, 0]
+    if_prize = [0, 0, 0, 0, 0, 0]
 
     present_x = bom_pos[0] + 18
     present_y = bom_pos[1] + 18
@@ -124,7 +125,7 @@ def game2state(game):
         if midpoint in obs_cache or not inside_map(next_x, next_y, rows, columns, length):
             if_obs[action] = 1
 
-    # if prize in 4 sectors
+    # if prize in 6 sectors
     for prize in prize_pos:
         p_x = prize[0] + 20.0
         p_y = prize[1] + 20.0
@@ -136,22 +137,19 @@ def game2state(game):
         cos = relative_x / distance
         degree = acos(cos) / pi * 180
         if relative_y < 0:
-            degree = 360 - degree
-        degree = degree - 60 * present_dir
-        # range: [0, 360]
-        while degree >= 360:
-            degree -= 360
-        while degree < 0:
-            degree += 360
-            
-        if degree <= 30 or degree >= 330:  # if in sector 1
-            if_prize[0] = 1
-        elif 30 < degree <= 90:  # if in sector 2
+            degree = -degree  # (-180, 180]
+        if -30 < degree <= 30:
+            if_prize[0] = 1  # if prize in sector 0
+        elif 30 < degree <= 90:
             if_prize[1] = 1
-        elif 270 <= degree < 330:  # if in sector 3
+        elif 90 < degree <= 150:
             if_prize[2] = 1
-        else:  # if in sector 4
+        elif degree > 150 or degree <= -150:
             if_prize[3] = 1
+        elif -150 < degree <= -90:
+            if_prize[4] = 1
+        elif -90 < degree <= -30:
+            if_prize[5] = 1
 
     state = [
         # direction
@@ -166,10 +164,12 @@ def game2state(game):
         if_obs[0],  # if obstacle in direction -1, default 0
         if_obs[2],  # if obstacle in direction 1, default 0
 
-        if_prize[0],  # if prize in sector 1, default 0
-        if_prize[1],  # if prize in sector 2, default 0
-        if_prize[2],  # if prize in sector 3, default 0
-        if_prize[3],  # if prize in sector 4, default 0
+        if_prize[0],  # if prize in sector 0, default 0
+        if_prize[1],  # if prize in sector 1, default 0
+        if_prize[2],  # if prize in sector 2, default 0
+        if_prize[3],  # if prize in sector 3, default 0
+        if_prize[4],  # if prize in sector 4, default 0
+        if_prize[5],  # if prize in sector 5, default 0
     ]
 
-    return state
+    return np.array(state, dtype=int)

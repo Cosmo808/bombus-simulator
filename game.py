@@ -8,7 +8,7 @@ BLUE = 70, 130, 180
 WHITE = 255, 255, 255
 
 # params
-delay = 100
+delay = 0
 P_obstacle = 0.08
 number_prize = 1
 

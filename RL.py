@@ -3,7 +3,6 @@ from Model_torch import DNN, Trainer
 import numpy as np
 import random
 from utils import game2state
-import tensorflow as tf
 from collections import deque
 
 max_memory = 10000
@@ -23,7 +22,8 @@ class Agent:
         # self.memory_counter = 0
         # self.learn_step_counter = 0
         # self.replace_target_iter = 50
-        self.dnn = DNN(state_size=state_size, hidden_size=64*3, action_size=3)
+        self.dnn = DNN(state_size=state_size, hidden_size=288, action_size=3)
+        self.dnn.load_state_dict(torch.load('./Model/bombus.pth'))
         self.trainer = Trainer(self.dnn)
 
     @staticmethod

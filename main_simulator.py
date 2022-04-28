@@ -9,8 +9,8 @@ plot_scores = []
 plot_mean_scores = []
 total_score = 0
 record = 0
-agent = Agent(state_size=13)
 game = BombusGame()
+agent = Agent(state_size=15)
 # icp = ICPapi()
 plt.ion()
 

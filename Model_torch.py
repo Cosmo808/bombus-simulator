@@ -20,7 +20,6 @@ class DNN(nn.Module):
         model_folder_path = './Model'
         if not os.path.exists(model_folder_path):
             os.makedirs(model_folder_path)
-
         file_name = os.path.join(model_folder_path, file_name)
         torch.save(self.state_dict(), file_name)
 
@@ -29,6 +28,7 @@ class Trainer:
     def __init__(self, dnn):
         self.lr = 1e-2
         self.gamma = 0.9
+        self.alpha = 1
         self.dnn = dnn
         self.optimizer = optim.Adam(self.dnn.parameters(), lr=self.lr)
         self.criterion = nn.MSELoss()
@@ -53,7 +53,8 @@ class Trainer:
                 q = reward[index] + self.gamma * torch.max(self.dnn(next_state[index]))
             else:
                 q = reward[index]
-            target_q[index][action] = q
+            q_old = target_q[index][action]
+            target_q[index][action] = q_old + self.alpha * (q - q_old)
 
         self.optimizer.zero_grad()
         loss = self.criterion(target_q, predict_q)
