@@ -26,7 +26,7 @@ class DNN(nn.Module):
 
 class Trainer:
     def __init__(self, dnn):
-        self.lr = 1e-2
+        self.lr = 1e-4
         self.gamma = 0.9
         self.alpha = 1
         self.dnn = dnn
@@ -36,12 +36,13 @@ class Trainer:
     def train_step(self, state, action, reward, next_state, done):
         state = torch.tensor(state, dtype=torch.float)
         next_state = torch.tensor(next_state, dtype=torch.float)
-        action = torch.tensor(action, dtype=torch.long)
+        action = torch.tensor(action, dtype=torch.int)
         reward = torch.tensor(reward, dtype=torch.float)
 
         if len(state.shape) == 1:
             state = torch.unsqueeze(state, 0)
             next_state = torch.unsqueeze(next_state, 0)
+            action = torch.unsqueeze(action, 0)
             reward = torch.unsqueeze(reward, 0)
             done = (done, )
 
@@ -53,8 +54,8 @@ class Trainer:
                 q = reward[index] + self.gamma * torch.max(self.dnn(next_state[index]))
             else:
                 q = reward[index]
-            q_old = target_q[index][action]
-            target_q[index][action] = q_old + self.alpha * (q - q_old)
+            q_old = target_q[index][action[index].item()]
+            target_q[index][action[index]] = q_old + self.alpha * (q - q_old)
 
         self.optimizer.zero_grad()
         loss = self.criterion(target_q, predict_q)

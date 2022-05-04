@@ -14,8 +14,8 @@ class Agent:
     def __init__(self, state_size):
         self.epochs = 0
         self.epsilon = 0
-        self.gamma = 0.9  # discount rates
-        self.alpha = 0.1
+        self.gamma = 0.5  # discount rates
+        self.alpha = 1
         self.state_size = state_size
         # self.memory = np.zeros((max_memory, self.state_size * 2 + 2))
         self. memory = deque(maxlen=max_memory)
