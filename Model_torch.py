@@ -16,7 +16,7 @@ class DNN(nn.Module):
         x = self.linear2(x)
         return x
 
-    def save(self, file_name='bombus.pth'):
+    def save(self, file_name):
         model_folder_path = './Model'
         if not os.path.exists(model_folder_path):
             os.makedirs(model_folder_path)
@@ -26,7 +26,7 @@ class DNN(nn.Module):
 
 class Trainer:
     def __init__(self, dnn):
-        self.lr = 1e-4
+        self.lr = 1e-3
         self.gamma = 0.9
         self.alpha = 1
         self.dnn = dnn

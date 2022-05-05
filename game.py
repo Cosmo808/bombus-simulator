@@ -21,6 +21,7 @@ class BombusGame:
         self.length = 40
         self.P_obs = P_obs  # distribution probability of obstacles
         self.num_prize = num_prize  # prize number
+        self.font = None
         self.bom_present_dir = None  # bombus present direction
         self.points = None  # points in map
         self.prize_pos = None  # prize position
@@ -42,6 +43,7 @@ class BombusGame:
         # init pygame
         pygame.init()
         self.screen, self.map = Map_generator.screen_map_set(self.rows, self.columns, self.length)
+        self.font = pygame.font.Font('./Font/arial.ttf', 18)
 
         # load img
         self.obstacle = pygame.image.load('Pic/obstacle.png').convert()
@@ -145,7 +147,11 @@ class BombusGame:
             self.scores += 1
             reward = 10
 
-        # 5. display on screen
+        # 5. display the score
+        text = self.font.render("Score: " + str(self.scores), True, BLUE)
+        self.screen.blit(text, [0, 0])
+
+        # 6. display on screen
         pygame.display.update()
         pygame.time.delay(delay)
 

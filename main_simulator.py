@@ -46,7 +46,7 @@ while True:
 
         if scores > record:
             record = scores
-            agent.dnn.save()
+            agent.dnn.save(file_name=str(record)+'.pth')
 
         # print result every epoch
         print('Epoch #{}  Score {}  Record {}'.format(agent.epochs, scores, record))

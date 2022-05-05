@@ -2,6 +2,7 @@ import torch
 from Model_torch import DNN, Trainer
 import numpy as np
 import random
+import os
 from utils import game2state
 from collections import deque
 
@@ -23,8 +24,21 @@ class Agent:
         # self.learn_step_counter = 0
         # self.replace_target_iter = 50
         self.dnn = DNN(state_size=state_size, hidden_size=288, action_size=3)
-        self.dnn.load_state_dict(torch.load('./Model/bombus.pth'))
+        self._load_dnn()
         self.trainer = Trainer(self.dnn)
+
+    def _load_dnn(self):
+        model_dir = './Model'
+        record = 0
+        for root, dirs, files in os.walk(model_dir):
+            if not files:
+                return
+            for file in files:
+                score = int(file.split('.')[0])
+                if score > record:
+                    record = score
+        model_name = './Model/' + str(record) + '.pth'
+        self.dnn.load_state_dict(torch.load(model_name))
 
     @staticmethod
     def get_state(game):
